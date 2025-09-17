@@ -26,7 +26,6 @@
 
 #include "chrono.hpp"
 #include "image.hpp"
-#include "lodepng.h"
 #include "maze.hpp"
 #include "string_util.hpp"
 

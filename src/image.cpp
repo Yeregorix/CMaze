@@ -22,7 +22,7 @@
 
 #include "image.hpp"
 
-#include "lodepng.h"
+#include <lodepng.h>
 
 Image::Image(const unsigned int width, const unsigned int height) : _width(width), _height(height), _data((width * height + 7) / 8, 0) {}
 
