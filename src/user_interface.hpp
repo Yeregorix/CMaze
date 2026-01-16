@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,33 @@
 * SOFTWARE.
 */
 
-#ifndef STRING_UTIL_HPP
-#define STRING_UTIL_HPP
+#ifndef USER_INTERFACE_HPP
+#define USER_INTERFACE_HPP
 
-#include <string>
+#include <QFileDialog>
+#include <QSpinBox>
+#include <QWidget>
 
-inline void ltrim(std::string& str) {
-    str.erase(str.find_last_not_of(' ') + 1);
-}
+class UserInterface : public QWidget {
+    Q_OBJECT
+    public:
 
-inline void rtrim(std::string& str) {
-    str.erase(0, str.find_first_not_of(' '));
-}
+    explicit UserInterface(QWidget* parent = nullptr);
 
-inline void trim(std::string& str) {
-    ltrim(str);
-    rtrim(str);
-}
+    private slots:
 
-#endif //STRING_UTIL_HPP
+    void randomSeed() const;
+
+    void generate();
+
+    private:
+
+    QSpinBox *_seed;
+    QSpinBox *_width, *_height;
+    QDoubleSpinBox *_error;
+    QSpinBox *_pathSize, *_wallSize;
+
+    QFileDialog _fileDialog;
+};
+
+#endif //USER_INTERFACE_HPP

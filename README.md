@@ -1,6 +1,6 @@
 # CMaze
 
-Port of [MazeGen](https://github.com/Yeregorix/MazeGen) to C++ as a CLI.
+Port of [MazeGen](https://github.com/Yeregorix/MazeGen) to C++ and Qt.
 
 CMaze allows you to create PNG images of a random perfect maze of any size with any seed.
 
