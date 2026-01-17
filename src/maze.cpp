@@ -28,6 +28,8 @@
 #include "random_queue.hpp"
 #include "vector_util.hpp"
 
+#include <QPainter>
+
 Maze::Maze(const unsigned int width, const unsigned int height) : _width(width), _height(height), _size(width * height) {
     _points.reserve(_size);
     for (int i = 0; i < _size; i++) {
@@ -73,22 +75,27 @@ void Maze::connectAll(std::mt19937 &generator, const double errorFactor) {
     }
 }
 
-Image Maze::generateImage(const unsigned int pathSize, const unsigned int wallSize) const {
-    Image image(_width * pathSize + (_width + 1) * wallSize, _height * pathSize + (_height + 1) * wallSize);
+QBitmap Maze::generateImage(const int pathSize, const int wallSize) const {
+    QBitmap image(static_cast<int>(_width * pathSize + (_width + 1) * wallSize), static_cast<int>(_height * pathSize + (_height + 1) * wallSize));
+    image.fill(Qt::black);
+
+    QPainter painter(&image);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(Qt::white);
 
     unsigned int pos = 0;
-    unsigned int imgY = wallSize;
+    int imgY = wallSize;
     for (int y = 0; y < _height; y++) {
-        unsigned int imgX = wallSize;
+        int imgX = wallSize;
         for (int x = 0; x < _width; x++) {
             const Point p = _points[pos];
 
-            image.fillRectangle(imgX, imgY, pathSize, pathSize);
+            painter.drawRect(imgX, imgY, pathSize, pathSize);
             if (p._connectedRight) {
-                image.fillRectangle(imgX + pathSize, imgY, wallSize, pathSize);
+                painter.drawRect(imgX + pathSize, imgY, wallSize, pathSize);
             }
             if (p._connectedDown) {
-                image.fillRectangle(imgX, imgY + pathSize, pathSize, wallSize);
+                painter.drawRect(imgX, imgY + pathSize, pathSize, wallSize);
             }
 
             pos++;

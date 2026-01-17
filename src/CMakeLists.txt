@@ -13,10 +13,8 @@ add_executable(CMaze main.cpp
         vector_util.hpp
         chrono.cpp
         chrono.hpp
-        image.cpp
-        image.hpp
         user_interface.cpp
         user_interface.hpp
 )
 
-target_link_libraries(CMaze LodePNG Qt::Core Qt::Gui Qt::Widgets)
+target_link_libraries(CMaze Qt::Core Qt::Gui Qt::Widgets)

@@ -107,10 +107,9 @@ void UserInterface::randomSeed() const {
 
 void UserInterface::generate() {
     if (_fileDialog.exec()) {
-        const QString qFileName = _fileDialog.selectedFiles().first();
-        _fileDialog.setDirectory(QFileInfo(qFileName).path());
+        const QString fileName = _fileDialog.selectedFiles().first();
+        _fileDialog.setDirectory(QFileInfo(fileName).path());
 
-        const std::string fileName = qFileName.toStdString();
         const int seed = _seed->value();
         const int width = _width->value(), height = _height->value();
         const double error = _error->value();
@@ -129,14 +128,15 @@ void UserInterface::generate() {
         std::cout << "Generating image ... (" << pathSize << ":" << wallSize << ")" << std::endl;
         chrono.restart();
 
-        const Image image = maze.generateImage(pathSize, wallSize);
+        const QBitmap image = maze.generateImage(pathSize, wallSize);
 
         chrono.done();
 
-        std::cout << "Writing to file ... (" << fileName << ")" << std::endl;
+        std::cout << "Writing to file ... (" << fileName.toStdString() << ")" << std::endl;
         chrono.restart();
 
-        image.writeToFile(fileName);
+        const bool result = image.save(fileName, "PNG");
+        std::cout << "Write " << (result ? "succeeded" : "failed") << "." << std::endl;
 
         chrono.done();
     }

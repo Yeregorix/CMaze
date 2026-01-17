@@ -23,10 +23,10 @@
 #ifndef MAZE_HPP
 #define MAZE_HPP
 
+#include <QBitmap>
 #include <vector>
 #include <random>
 #include "direction.hpp"
-#include "image.hpp"
 
 class Point;
 
@@ -39,7 +39,7 @@ class Maze {
 
     void connectAll(std::mt19937 &generator, double errorFactor);
 
-    [[nodiscard]] Image generateImage(unsigned int pathSize, unsigned int wallSize) const;
+    [[nodiscard]] QBitmap generateImage(int pathSize, int wallSize) const;
 
     private:
 

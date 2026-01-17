@@ -21,10 +21,20 @@
 */
 
 #include <QApplication>
+
+#include "maze.hpp"
 #include "user_interface.hpp"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
+
+    {
+        Maze maze(5, 5);
+        std::mt19937 generator(std::random_device{}());
+        maze.connectAll(generator, 0);
+
+        QApplication::setWindowIcon(QIcon(maze.generateImage(2, 1)));
+    }
 
     UserInterface ui;
     ui.show();
