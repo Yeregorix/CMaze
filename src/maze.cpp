@@ -54,7 +54,7 @@ void Maze::connectAll(const double errorFactor) {
         }
     }
 
-    const unsigned int errors = std::floor((_size - _width - _height + 1) * errorFactor);
+    const unsigned int errors = std::lround((_size - _width - _height + 1) * errorFactor);
     if (errors == 0) {
         return;
     }
@@ -66,7 +66,11 @@ void Maze::connectAll(const double errorFactor) {
     connections = 0;
     queue.reset();
 
-    // TODO forceConnect
+    while (connections != errors) {
+        if (queue.next()->forceConnect()) {
+            connections++;
+        }
+    }
 }
 
 Image Maze::generateImage(const unsigned int pathSize, const unsigned int wallSize) const {
@@ -122,7 +126,7 @@ void Point::shuffleDirectionCombination() {
 }
 
 void Point::resetDirectionIndex() {
-    _directionIndex = 0;
+    _directionIndex = -1;
 }
 
 bool Point::tryConnect() {
@@ -144,14 +148,14 @@ bool Point::tryConnect(const Direction direction) {
                 return false;
             }
 
-            {
-                Point& p = _maze._points[rel];
-                if (!append(p)) {
-                    return false;
-                }
-
-                p._connectedDown = true;
+        {
+            Point& p = _maze._points[rel];
+            if (!append(p)) {
+                return false;
             }
+
+            p._connectedDown = true;
+        }
             return true;
         case DOWN:
             rel = _position + _maze._width;
@@ -170,14 +174,14 @@ bool Point::tryConnect(const Direction direction) {
                 return false;
             }
 
-            {
-                Point& p = _maze._points[_position - 1];
-                if (!append(p)) {
-                    return false;
-                }
-
-                p._connectedRight = true;
+        {
+            Point& p = _maze._points[_position - 1];
+            if (!append(p)) {
+                return false;
             }
+
+            p._connectedRight = true;
+        }
             return true;
         case RIGHT:
             rel = _position + 1;
@@ -186,6 +190,76 @@ bool Point::tryConnect(const Direction direction) {
             }
 
             if (!append(_maze._points[rel])) {
+                return false;
+            }
+
+            _connectedRight = true;
+            return true;
+    }
+    throw std::invalid_argument("Invalid direction");
+}
+
+bool Point::forceConnect() {
+    while (_directionIndex < 3) {
+        _directionIndex++;
+        if (forceConnect((*_directions)[_directionIndex])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Point::forceConnect(const Direction direction) {
+    unsigned int rel;
+    switch (direction) {
+        case UP:
+            rel = _position - _maze._width;
+            if (rel > _position) { // underflow
+                return false;
+            }
+
+        {
+            Point& p = _maze._points[rel];
+            if (p._connectedDown) {
+                return false;
+            }
+
+            p._connectedDown = true;
+        }
+            return true;
+        case DOWN:
+            rel = _position + _maze._width;
+            if (rel >= _maze._size) {
+                return false;
+            }
+
+            if (_connectedDown) {
+                return false;
+            }
+
+            _connectedDown = true;
+            return true;
+        case LEFT:
+            if (_position % _maze._width == 0) {
+                return false;
+            }
+
+        {
+            Point& p = _maze._points[_position - 1];
+            if (p._connectedRight) {
+                return false;
+            }
+
+            p._connectedRight = true;
+        }
+            return true;
+        case RIGHT:
+            rel = _position + 1;
+            if (rel % _maze._width == 0) {
+                return false;
+            }
+
+            if (_connectedRight) {
                 return false;
             }
 

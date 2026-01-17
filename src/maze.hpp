@@ -75,6 +75,10 @@ class Point {
     bool tryConnect();
 
     bool tryConnect(Direction direction);
+
+    bool forceConnect();
+
+    bool forceConnect(Direction direction);
 };
 
 #endif //MAZE_HPP
