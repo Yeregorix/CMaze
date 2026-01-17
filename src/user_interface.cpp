@@ -101,8 +101,8 @@ UserInterface::UserInterface(QWidget *parent) : QWidget(parent) {
 
 void UserInterface::randomSeed() const {
     static std::mt19937 generator(std::random_device{}());
-    static std::uniform_int_distribution dist(INT_MIN, INT_MAX);
-    _seed->setValue(dist(generator));
+    static std::uniform_int_distribution distribution(INT_MIN, INT_MAX);
+    _seed->setValue(distribution(generator));
 }
 
 void UserInterface::generate() {
@@ -119,10 +119,10 @@ void UserInterface::generate() {
         std::cout << "Generating maze ... (" << width << "x" << height << ", error:" << error << ", seed:" << seed << ")" << std::endl;
         Chrono chrono;
 
-        srand(seed);
+        std::mt19937 generator(seed);
 
         Maze maze(width, height);
-        maze.connectAll(error);
+        maze.connectAll(generator, error);
 
         chrono.done();
 

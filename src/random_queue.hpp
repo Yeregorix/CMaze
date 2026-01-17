@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2025-2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #ifndef RANDOM_QUEUE_HPP
 #define RANDOM_QUEUE_HPP
 
-#include <cstdlib>
 #include <vector>
 
 template <typename T>
@@ -31,7 +30,7 @@ class RandomQueue {
 
     public:
 
-    explicit RandomQueue(std::vector<T> values) : _values(values), _remainingSize(0) {};
+    RandomQueue(std::vector<T> values, std::mt19937 &generator) : _values(values), _generator(generator), _remainingSize(0) {};
 
     void reset() {
         _remainingSize = 0;
@@ -41,9 +40,10 @@ class RandomQueue {
         if (_remainingSize == 0) {
             _remainingSize = _values.size();
         }
-        int index = rand() % _remainingSize;
-        T value = _values[index];
         _remainingSize--;
+        std::uniform_int_distribution distribution(0, _remainingSize);
+        int index = distribution(_generator);
+        T value = _values[index];
         _values[index] = _values[_remainingSize];
         _values[_remainingSize] = value;
         return value;
@@ -52,6 +52,7 @@ class RandomQueue {
     private:
 
     std::vector<T> _values;
+    std::mt19937 &_generator;
     int _remainingSize;
 };
 

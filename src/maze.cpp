@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2025-2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -35,18 +35,18 @@ Maze::Maze(const unsigned int width, const unsigned int height) : _width(width),
     }
 }
 
-void Maze::connectAll(const double errorFactor) {
+void Maze::connectAll(std::mt19937 &generator, const double errorFactor) {
     if (errorFactor < 0 || errorFactor > 1) {
         throw std::range_error("Error factor must be between 0 and 1");
     }
 
     for (unsigned int i = 0; i < _size; i++) {
-        _points[i].shuffleDirectionCombination();
+        _points[i].shuffleDirectionCombination(generator);
     }
 
     const unsigned int max = _size - 1;
     unsigned int connections = 0;
-    RandomQueue queue(toPointers(_points));
+    RandomQueue queue(toPointers(_points), generator);
 
     while (connections != max) {
         if (queue.next()->tryConnect()) {
@@ -120,8 +120,8 @@ Point* Point::top() {
     return t;
 }
 
-void Point::shuffleDirectionCombination() {
-    _directions = &randomDirectionCombination();
+void Point::shuffleDirectionCombination(std::mt19937 &generator) {
+    _directions = &randomDirectionCombination(generator);
     resetDirectionIndex();
 }
 

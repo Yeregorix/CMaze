@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2025-2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define MAZE_HPP
 
 #include <vector>
+#include <random>
 #include "direction.hpp"
 #include "image.hpp"
 
@@ -36,7 +37,7 @@ class Maze {
 
     Maze(unsigned int width, unsigned int height);
 
-    void connectAll(double errorFactor);
+    void connectAll(std::mt19937 &generator, double errorFactor);
 
     [[nodiscard]] Image generateImage(unsigned int pathSize, unsigned int wallSize) const;
 
@@ -68,7 +69,7 @@ class Point {
 
     Point* top();
 
-    void shuffleDirectionCombination();
+    void shuffleDirectionCombination(std::mt19937 &generator);
 
     void resetDirectionIndex();
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2025-2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 #define DIRECTION_HPP
 
 #include <array>
+#include <random>
 
 enum Direction {UP, DOWN, LEFT, RIGHT};
 
@@ -31,6 +32,6 @@ typedef std::array<Direction, 4> DirectionCombination;
 
 constexpr DirectionCombination DIRECTIONS = {UP, DOWN, LEFT, RIGHT};
 
-DirectionCombination& randomDirectionCombination();
+DirectionCombination& randomDirectionCombination(std::mt19937 &generator);
 
 #endif //DIRECTION_HPP

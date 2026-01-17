@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2025-2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 #include "direction.hpp"
 
 #include <array>
-#include <cstdlib>
 
 typedef std::array<DirectionCombination, 24> DirectionCombinationSet;
 
@@ -52,10 +51,11 @@ void computeCombinations(DirectionCombinationSet& combinations) {
 DirectionCombinationSet combinationsCache;
 bool combinationsCacheInitialized = false;
 
-DirectionCombination& randomDirectionCombination() {
+DirectionCombination& randomDirectionCombination(std::mt19937 &generator) {
     if (!combinationsCacheInitialized) {
         computeCombinations(combinationsCache);
         combinationsCacheInitialized = true;
     }
-    return combinationsCache[rand() % 24];
+    static std::uniform_int_distribution distribution(0, 23);
+    return combinationsCache[distribution(generator)];
 }
