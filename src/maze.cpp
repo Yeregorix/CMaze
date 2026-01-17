@@ -30,11 +30,19 @@
 
 #include <QPainter>
 
-Maze::Maze(const unsigned int width, const unsigned int height) : _width(width), _height(height), _size(width * height) {
+Maze::Maze(const unsigned int width, const unsigned int height) : _worker(nullptr), _width(width), _height(height), _size(width * height), _lastUpdate(-1) {
     _points.reserve(_size);
+}
+
+void Maze::fill() {
+    forceUpdate(0);
+
     for (int i = 0; i < _size; i++) {
         _points.emplace_back(*this, i);
+        update(i / static_cast<double>(_size));
     }
+
+    forceUpdate(1);
 }
 
 void Maze::connectAll(std::mt19937 &generator, const double errorFactor) {
@@ -42,40 +50,68 @@ void Maze::connectAll(std::mt19937 &generator, const double errorFactor) {
         throw std::range_error("Error factor must be between 0 and 1");
     }
 
+    if (isCancelled()) {
+        return;
+    }
+
+    forceUpdate(0);
+
     for (unsigned int i = 0; i < _size; i++) {
         _points[i].shuffleDirectionCombination(generator);
+        update(i / static_cast<double>(_size));
     }
+
+    forceUpdate(0);
 
     const unsigned int max = _size - 1;
     unsigned int connections = 0;
     RandomQueue queue(toPointers(_points), generator);
 
-    while (connections != max) {
+    while (connections != max && !isCancelled()) {
         if (queue.next()->tryConnect()) {
-            connections++;
+            update(++connections / static_cast<double>(max));
         }
     }
+
+    if (isCancelled()) {
+        return;
+    }
+
+    forceUpdate(1);
 
     const unsigned int errors = std::lround((_size - _width - _height + 1) * errorFactor);
     if (errors == 0) {
         return;
     }
 
+    forceUpdate(0);
+
     for (unsigned int i = 0; i < _size; i++) {
         _points[i].resetDirectionIndex();
+        update(i / static_cast<double>(_size));
     }
+
+    forceUpdate(0);
 
     connections = 0;
     queue.reset();
 
-    while (connections != errors) {
+    while (connections != errors && !isCancelled()) {
         if (queue.next()->forceConnect()) {
-            connections++;
+            update(++connections / static_cast<double>(errors));
         }
     }
+
+    if (isCancelled()) {
+        return;
+    }
+
+    forceUpdate(1);
 }
 
-QBitmap Maze::generateImage(const int pathSize, const int wallSize) const {
+QBitmap Maze::generateImage(const int pathSize, const int wallSize) {
+    forceUpdate(0);
+
     QBitmap image(static_cast<int>(_width * pathSize + (_width + 1) * wallSize), static_cast<int>(_height * pathSize + (_height + 1) * wallSize));
     image.fill(Qt::black);
 
@@ -98,13 +134,36 @@ QBitmap Maze::generateImage(const int pathSize, const int wallSize) const {
                 painter.drawRect(imgX, imgY + pathSize, pathSize, wallSize);
             }
 
-            pos++;
+            update(++pos / static_cast<double>(_size));
             imgX += pathSize + wallSize;
         }
         imgY += pathSize + wallSize;
     }
 
+    forceUpdate(1);
+
     return image;
+}
+
+void Maze::update(const double progress) {
+    if (const int value = std::lround(progress * WORKER_MAX_PROGRESS); _lastUpdate != value) {
+        forceIntUpdate(value);
+    }
+}
+
+void Maze::forceUpdate(const double progress) {
+    forceIntUpdate(std::lround(progress * WORKER_MAX_PROGRESS));
+}
+
+void Maze::forceIntUpdate(const int progress) {
+    _lastUpdate = progress;
+    if (_worker != nullptr) {
+        emit _worker->progress(progress);
+    }
+}
+
+bool Maze::isCancelled() const {
+    return _worker != nullptr && _worker->isCancelled();
 }
 
 Point::Point(Maze &maze, const unsigned int position) : _maze(maze), _position(position) {}

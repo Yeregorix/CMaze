@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025-2026 Hugo Dupanloup (Yeregorix)
+* Copyright (c) 2026 Hugo Dupanloup (Yeregorix)
 *
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
@@ -20,26 +20,49 @@
 * SOFTWARE.
 */
 
-#include <QApplication>
+#ifndef WORKER_HPP
+#define WORKER_HPP
 
-#include "maze.hpp"
-#include "user_interface.hpp"
+#include <QObject>
+#include <QRunnable>
 
-int main(int argc, char *argv[]) {
-    QApplication app(argc, argv);
+struct WorkerParameters {
+    int seed;
+    int width, height;
+    double errorFactor;
+    int pathSize, wallSize;
+    QString fileName;
+};
 
-    {
-        std::mt19937 generator(std::random_device{}());
+constexpr int WORKER_MAX_PROGRESS = 1000;
 
-        Maze maze(5, 5);
-        maze.fill();
-        maze.connectAll(generator, 0);
+class Worker : public QObject, public QRunnable {
+    Q_OBJECT
+    public:
 
-        QApplication::setWindowIcon(QIcon(maze.generateImage(2, 1)));
-    }
+    explicit Worker(const WorkerParameters &parameters);
 
-    UserInterface ui;
-    ui.show();
+    void run() override;
 
-    return QApplication::exec();
-}
+    bool isCancelled() const;
+
+    signals:
+
+    void message(const QString &message);
+
+    void progress(int value);
+
+    void finished();
+
+    public slots:
+
+    void cancel();
+
+    private:
+
+    const WorkerParameters _parameters;
+    bool _cancelled{false};
+};
+
+
+#endif //WORKER_HPP

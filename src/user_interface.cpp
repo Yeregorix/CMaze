@@ -22,15 +22,15 @@
 
 #include "user_interface.hpp"
 
-#include <iostream>
 #include <QGridLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QFileDialog>
+#include <QProgressDialog>
+#include <QThreadPool>
 #include <random>
 
-#include "chrono.hpp"
-#include "maze.hpp"
+#include "worker.hpp"
 
 UserInterface::UserInterface(QWidget *parent) : QWidget(parent) {
     setFixedWidth(400);
@@ -68,8 +68,8 @@ UserInterface::UserInterface(QWidget *parent) : QWidget(parent) {
     auto *randomSeedButton = new QPushButton("Random");
     auto *generateButton = new QPushButton("Generate");
 
-    connect(randomSeedButton, SIGNAL (clicked(bool)), this, SLOT (randomSeed()));
-    connect(generateButton, SIGNAL (clicked(bool)), this, SLOT (generate()));
+    connect(randomSeedButton, &QPushButton::clicked, this, &UserInterface::randomSeed);
+    connect(generateButton, &QPushButton::clicked, this, &UserInterface::generate);
 
     auto *layout = new QGridLayout(this);
 
@@ -110,34 +110,32 @@ void UserInterface::generate() {
         const QString fileName = _fileDialog.selectedFiles().first();
         _fileDialog.setDirectory(QFileInfo(fileName).path());
 
-        const int seed = _seed->value();
-        const int width = _width->value(), height = _height->value();
-        const double error = _error->value();
-        const int pathSize = _pathSize->value(), wallSize = _wallSize->value();
+        const WorkerParameters parameters = {
+            _seed->value(),
+            _width->value(), _height->value(),
+            _error->value(),
+            _pathSize->value(), _wallSize->value(),
+            fileName
+        };
 
-        std::cout << "Generating maze ... (" << width << "x" << height << ", error:" << error << ", seed:" << seed << ")" << std::endl;
-        Chrono chrono;
+        auto *dialog = new QProgressDialog();
+        dialog->setWindowModality(Qt::WindowModal);
+        dialog->setWindowTitle("Generating maze ...");
+        dialog->setFixedWidth(300);
+        dialog->setRange(0, WORKER_MAX_PROGRESS);
+        dialog->setAutoClose(false);
+        dialog->setAutoReset(false);
 
-        std::mt19937 generator(seed);
+        auto *worker = new Worker(parameters);
 
-        Maze maze(width, height);
-        maze.connectAll(generator, error);
+        connect(worker, &Worker::message, dialog, &QProgressDialog::setLabelText);
+        connect(worker, &Worker::progress, dialog, &QProgressDialog::setValue);
+        connect(worker, &Worker::finished, dialog, &QProgressDialog::close);
 
-        chrono.done();
+        connect(dialog, &QProgressDialog::canceled, worker, &Worker::cancel);
+        connect(dialog, &QProgressDialog::finished, worker, &QProgressDialog::deleteLater);
 
-        std::cout << "Generating image ... (" << pathSize << ":" << wallSize << ")" << std::endl;
-        chrono.restart();
-
-        const QBitmap image = maze.generateImage(pathSize, wallSize);
-
-        chrono.done();
-
-        std::cout << "Writing to file ... (" << fileName.toStdString() << ")" << std::endl;
-        chrono.restart();
-
-        const bool result = image.save(fileName, "PNG");
-        std::cout << "Write " << (result ? "succeeded" : "failed") << "." << std::endl;
-
-        chrono.done();
+        QThreadPool::globalInstance()->start(worker);
+        dialog->exec();
     }
 }

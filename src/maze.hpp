@@ -27,6 +27,7 @@
 #include <vector>
 #include <random>
 #include "direction.hpp"
+#include "worker.hpp"
 
 class Point;
 
@@ -37,14 +38,27 @@ class Maze {
 
     Maze(unsigned int width, unsigned int height);
 
+    void fill();
+
     void connectAll(std::mt19937 &generator, double errorFactor);
 
-    [[nodiscard]] QBitmap generateImage(int pathSize, int wallSize) const;
+    [[nodiscard]] QBitmap generateImage(int pathSize, int wallSize);
+
+    Worker *_worker;
 
     private:
 
+    void update(double progress);
+
+    void forceUpdate(double progress);
+
+    void forceIntUpdate(int progress);
+
+    bool isCancelled() const;
+
     unsigned int _width, _height, _size;
     std::vector<Point> _points{};
+    int _lastUpdate;
 };
 
 class Point {

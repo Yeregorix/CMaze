@@ -15,6 +15,8 @@ add_executable(CMaze main.cpp
         chrono.hpp
         user_interface.cpp
         user_interface.hpp
+        worker.cpp
+        worker.hpp
 )
 
 target_link_libraries(CMaze Qt::Core Qt::Gui Qt::Widgets)
