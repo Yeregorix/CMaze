@@ -133,9 +133,9 @@ void UserInterface::generate() {
         connect(worker, &Worker::finished, dialog, &QProgressDialog::close);
 
         connect(dialog, &QProgressDialog::canceled, worker, &Worker::cancel);
-        connect(dialog, &QProgressDialog::finished, worker, &QProgressDialog::deleteLater);
+        connect(dialog, &QProgressDialog::finished, dialog, &QProgressDialog::deleteLater);
 
         QThreadPool::globalInstance()->start(worker);
-        dialog->exec();
+        dialog->open();
     }
 }
