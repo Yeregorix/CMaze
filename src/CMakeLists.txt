@@ -19,4 +19,4 @@ add_executable(CMaze main.cpp
         worker.hpp
 )
 
-target_link_libraries(CMaze Qt::Core Qt::Gui Qt::Widgets)
+target_link_libraries(CMaze PRIVATE Qt::Core Qt::Gui Qt::Widgets)
